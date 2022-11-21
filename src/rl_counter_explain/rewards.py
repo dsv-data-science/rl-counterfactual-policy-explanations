@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 from tf_agents.trajectories import time_step as ts
 
-from rlplg_experiments.explain import record
+from rl_counter_explain import record
 
 RewardShapeFn = Callable[[record.BlackboxCounterfactual, record.Step, Any], ts.TimeStep]
 
