@@ -1,0 +1,7 @@
+site_name: RL Counterfactual Policy Explanations
+
+site_description: >
+  Counterfactual explanations in reinforcement learning.
+
+nav:
+  - RL-PLG Home: 'index.md'
