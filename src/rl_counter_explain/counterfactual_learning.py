@@ -16,13 +16,6 @@ import tempfile
 from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
-from tf_agents.environments import py_environment
-from tf_agents.policies import py_policy
-from tf_agents.trajectories import policy_step
-from tf_agents.trajectories import time_step as ts
-from tf_agents.trajectories import trajectory
-from tf_agents.typing.types import NestedArray, Seed
-
 from rlplg import tracking
 from rlplg.environments.gridworld import constants as constants_gridworld
 from rlplg.environments.gridworld import env as env_gridworld
@@ -31,8 +24,15 @@ from rlplg.environments.redgreen import constants as constants_redgreen
 from rlplg.environments.redgreen import env as env_redgreen
 from rlplg.examples import qlearning
 from rlplg.learning.tabular import dynamicprog, markovdp, policies
-from rl_counter_explain import envstats
+from tf_agents.environments import py_environment
+from tf_agents.policies import py_policy
+from tf_agents.trajectories import policy_step
+from tf_agents.trajectories import time_step as ts
+from tf_agents.trajectories import trajectory
+from tf_agents.typing.types import NestedArray, Seed
+
 from rl_counter_explain import record, rewards
+from rl_counter_explain.envstats import envstats
 
 REDGREEN = "redgreen"
 GRIDWORLD = "gridworld"
@@ -472,7 +472,7 @@ def _parse_redgreen_spec(
     if args.blackbox == DYNA_PROG:
         state_values = dynamicprog.iterative_policy_evaluation(
             mdp=mdp,
-            policy=policies.PyRandomObservablePolicy(
+            policy=policies.PyObservableRandomPolicy(
                 time_step_spec=env_spec.environment.time_step_spec(),
                 action_spec=env_spec.environment.action_spec(),
                 num_actions=env_spec.env_desc.num_actions,
@@ -549,21 +549,7 @@ def _parse_gridworld_spec(
     intervention_reward: float, mdp_stats_path: str
 ) -> ProblemSpec:
     arg_parser = argparse.ArgumentParser(prog="GridWorld Params")
-    arg_parser.add_argument(
-        "--grid-path",
-        type=str,
-        default=os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            os.path.pardir,
-            os.path.pardir,
-            os.path.pardir,
-            "assets",
-            "env",
-            "gridworld",
-            "levels",
-            "gridworld_cliff_02.txt",
-        ),
-    )
+    arg_parser.add_argument("--grid-path", type=str, required=True)
     arg_parser.add_argument(
         "--blackbox",
         type=str,
@@ -587,7 +573,7 @@ def _parse_gridworld_spec(
         # learns a safe policy - keey away from dangerous cliffs
         state_values = dynamicprog.iterative_policy_evaluation(
             mdp=mdp,
-            policy=policies.PyRandomObservablePolicy(
+            policy=policies.PyObservableRandomPolicy(
                 time_step_spec=env_spec.environment.time_step_spec(),
                 action_spec=env_spec.environment.action_spec(),
                 num_actions=env_spec.env_desc.num_actions,
