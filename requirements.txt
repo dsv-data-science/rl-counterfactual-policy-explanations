@@ -111,8 +111,9 @@ markupsafe==2.1.2
     # via
     #   rlplg
     #   werkzeug
-numpy==1.24.2
+numpy==1.23.5
     # via
+    #   -r requirements.in
     #   gym
     #   h5py
     #   opt-einsum
