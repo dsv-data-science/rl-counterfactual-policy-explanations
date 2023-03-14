@@ -1,5 +1,5 @@
 __author__ = "guilherme"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __email__ = "guilherme@dsv.su.se, maria.movin@dsv.su.se"
 __description__ = "RL Counterfactual Explanations"
 __uri__ = "https://github.com/dsv-data-science/rl-counterfactual-policy-explanations"

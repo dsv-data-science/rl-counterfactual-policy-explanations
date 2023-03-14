@@ -1,0 +1,3 @@
+rlplg @ git+https://github.com/guidj/rlplg.git@v0.12.1
+# https://github.com/tensorflow/agents/issues/807
+numpy==1.23.5

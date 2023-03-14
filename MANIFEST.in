@@ -1,5 +1,6 @@
 # Include anything required to run the library that is *not* a Python file in `src/`
 include *.txt tox.ini .coveragerc *.rst *.md
+include *.in
 recursive-include tests *.py
 exclude mkdocs.yml
 
