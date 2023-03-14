@@ -10,12 +10,11 @@ import json
 import logging
 from typing import Any, List, Mapping, Optional, Sequence, Tuple
 
-import ray
-from rlplg.learning.tabular import empiricmdp
-
 import daaf
+import ray
 from daaf import utils
 from daaf.envstats import envstats
+from rlplg.learning.tabular import empiricmdp
 
 
 @dataclasses.dataclass(frozen=True)
