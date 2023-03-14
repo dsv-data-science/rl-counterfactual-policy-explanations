@@ -1,0 +1,7 @@
+-r requirements.txt
+jupyterlab==3.4.3
+# plotting
+matplotlib
+seaborn
+# misc
+text_to_image==0.0.5
