@@ -17,11 +17,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 from rlplg import tracking
-from rlplg.environments.gridworld import constants as constants_gridworld
-from rlplg.environments.gridworld import env as env_gridworld
-from rlplg.environments.gridworld import utils as utils_gridworld
-from rlplg.environments.redgreen import constants as constants_redgreen
-from rlplg.environments.redgreen import env as env_redgreen
+from rlplg.environments import gridworld, redgreen
 from rlplg.examples import qlearning
 from rlplg.learning.tabular import dynamicprog, markovdp, policies
 from tf_agents.environments import py_environment
@@ -464,7 +460,7 @@ def _parse_redgreen_spec(
 
     cure = args.cure.split(",")
     terminal_state = len(cure)
-    env_spec = env_redgreen.create_env_spec(cure=cure)
+    env_spec = redgreen.create_env_spec(cure=cure)
     mdp = envstats.load_or_generate_inferred_mdp(
         path=mdp_stats_path, env_spec=env_spec, num_episodes=MDP_STATS_EPISODES
     )
@@ -484,7 +480,7 @@ def _parse_redgreen_spec(
         blackbox_policy = policies.PyQGreedyPolicy(
             time_step_spec=env_spec.environment.time_step_spec(),
             action_spec=env_spec.environment.action_spec(),
-            state_id_fn=env_redgreen.get_state_id,
+            state_id_fn=redgreen.get_state_id,
             action_values=action_values,
         )
 
@@ -494,11 +490,11 @@ def _parse_redgreen_spec(
             dtype=np.float32,
         )
         # green is the best
-        action_values[:, constants_redgreen.GREEN_PILL] = 1.0
+        action_values[:, redgreen.GREEN_PILL] = 1.0
         blackbox_policy = policies.PyQGreedyPolicy(
             time_step_spec=env_spec.environment.time_step_spec(),
             action_spec=env_spec.environment.action_spec(),
-            state_id_fn=env_redgreen.get_state_id,
+            state_id_fn=redgreen.get_state_id,
             action_values=action_values,
         )
     else:
@@ -509,17 +505,13 @@ def _parse_redgreen_spec(
         )
 
     def success_fn(time_step: ts.TimeStep):
-        return (
-            time_step.observation[constants_redgreen.KEY_OBS_POSITION] == terminal_state
-        )
+        return time_step.observation[redgreen.OBS_KEY_POSITION] == terminal_state
 
     def create_reward_shaping_fns() -> Mapping[str, rewards.RewardShapeFn]:
         def counterfactual_reward_fn(next_time_step: ts.TimeStep) -> float:
             distance_to_end = (
-                len(
-                    next_time_step.observation[constants_redgreen.KEY_OBS_CURE_SEQUENCE]
-                )
-                - next_time_step.observation[constants_redgreen.KEY_OBS_POSITION]
+                len(next_time_step.observation[redgreen.OBS_KEY_CURE_SEQUENCE])
+                - next_time_step.observation[redgreen.OBS_KEY_POSITION]
             )
             # closer is better
             return next_time_step.reward - distance_to_end
@@ -539,7 +531,7 @@ def _parse_redgreen_spec(
         environment=env_spec.environment,
         mdp=mdp,
         blackbox_policy=blackbox_policy,
-        state_id_fn=env_redgreen.get_state_id,
+        state_id_fn=redgreen.get_state_id,
         success_fn=success_fn,
         reward_shaping_functions=create_reward_shaping_fns,
     )
@@ -558,15 +550,15 @@ def _parse_gridworld_spec(
     )
     args, _ = arg_parser.parse_known_args()
 
-    grid_size, cliffs, exits, start = utils_gridworld.parse_grid(path=args.grid_path)
-    env_spec = env_gridworld.create_env_spec(
+    grid_size, cliffs, exits, start = gridworld.parse_grid(path=args.grid_path)
+    env_spec = gridworld.create_env_spec(
         grid_size, cliffs=cliffs, exits=exits, start=start
     )
     mdp = envstats.load_or_generate_inferred_mdp(
         path=mdp_stats_path, env_spec=env_spec, num_episodes=MDP_STATS_EPISODES
     )
-    state_id_fn = env_gridworld.create_state_id_fn(
-        env_gridworld.states_mapping(size=grid_size, cliffs=cliffs)
+    state_id_fn = gridworld.create_state_id_fn(
+        gridworld.states_mapping(size=grid_size, cliffs=cliffs)
     )
     logging.info("Creating blackbox policy %s", args.blackbox)
     if args.blackbox == DYNA_PROG:
@@ -610,17 +602,17 @@ def _parse_gridworld_spec(
 
     def success_fn(time_step: ts.TimeStep):
         return (
-            time_step.observation[constants_gridworld.Strings.player]
-            in time_step.observation[constants_gridworld.Strings.exits]
+            time_step.observation[gridworld.Strings.player]
+            in time_step.observation[gridworld.Strings.exits]
         )
 
     def create_reward_shaping_fns() -> Mapping[str, rewards.RewardShapeFn]:
         def counterfactual_reward_fn(next_time_step: ts.TimeStep) -> float:
             distances = []
             player = np.array(
-                next_time_step.observation[constants_gridworld.Strings.player], np.float
+                next_time_step.observation[gridworld.Strings.player], np.float
             )
-            for cliff in next_time_step.observation[constants_gridworld.Strings.cliffs]:
+            for cliff in next_time_step.observation[gridworld.Strings.cliffs]:
                 distances.append(np.linalg.norm(player - np.array(cliff, np.float)))
             return next_time_step.reward - (
                 1.0 / np.min(distances) if len(distances) > 0 else 0.0
@@ -953,6 +945,9 @@ def serialize(obj: Any) -> Mapping[str, Any]:
 
 
 def main():
+    """
+    Entry point function.
+    """
     args = parse_args()
     problem_spec = parse_problem(
         problem=args.problem,
